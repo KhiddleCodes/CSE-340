@@ -1,0 +1,21 @@
+<% if (title) { %>
+  <h1><%= title %></h1>
+<% } else { %>
+  <h1>Profile</h1>
+<% } %>
+
+<div class="danger-msg"><%- messages() %></div>
+
+<% if (profile) { %>
+  <div class="proForm">
+    <h2 class="TagTitle">User Profile</h2>
+    <div class="items-list">
+      <p><strong>User ID:</strong> <%= locals.user_id %></p>
+      <p><strong>Bio:</strong> <%= locals.bio %></p>
+      <p><strong>Profile Picture:</strong> <img src="<%= locals.profile_picture %>" alt="Profile Picture" /></p>
+      <p><strong>Contact Number:</strong> <%= locals.contact_number %></p>
+    </div>
+  </div>
+<% } else { %>
+  <p>No profile information available.</p>
+<% } %>
