@@ -1,35 +1,57 @@
 // utilities/inventory-validation.js
-// Minimal stub for inventory validation utilities.
-// Replace with your real validation logic later.
+// Simple implementation that provides inventoryRules() and checkInventoryPayload()
+// Adjust field names to match your form fields (invName, invDescription, invPrice, classification_id)
+
+const { body, validationResult } = require('express-validator');
+
+function inventoryRules() {
+  // returns an array of middleware validators (uses express-validator)
+  return [
+    body('invName')
+      .trim()
+      .notEmpty()
+      .withMessage('Inventory name is required'),
+    body('invDescription')
+      .trim()
+      .notEmpty()
+      .withMessage('Description is required'),
+    body('invPrice')
+      .trim()
+      .notEmpty()
+      .withMessage('Price is required')
+      .bail()
+      .isFloat({ gt: 0 })
+      .withMessage('Price must be a number greater than 0'),
+    body('classification_id')
+      .trim()
+      .notEmpty()
+      .withMessage('Please select a classification')
+      .bail()
+      .isInt({ min: 1 })
+      .withMessage('Invalid classification')
+  ];
+}
+
+function checkInventoryPayload(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    // If your app renders a view on validation failure, render with errors.
+    // Otherwise return JSON error. Adjust to your app's behavior.
+    const extracted = errors.array().map(err => ({ param: err.param, msg: err.msg }));
+    // Example: if your route expects to render 'inventory/add' on error:
+    if (req.accepts('html')) {
+      return res.status(400).render('inventory/add', {
+        title: 'Add Inventory',
+        errors: extracted,
+        formData: req.body
+      });
+    }
+    return res.status(400).json({ errors: extracted });
+  }
+  next();
+}
 
 module.exports = {
-  // Example middleware used by inventory routes
-  addClassificationRules: (req, res, next) => {
-    // simple placeholder — assume valid
-    if (!req.body || typeof req.body !== 'object') {
-      return res.status(400).json({ error: 'Invalid request body' });
-    }
-    // attach parsed/normalized data if needed
-    req.validated = req.body;
-    next();
-  },
-
-  checkInventoryPayload: (req, res, next) => {
-    // Very small validation example — customize as needed
-    const { invName, invDescription } = req.body || {};
-    if (!invName || invName.trim() === '') {
-      return res.status(400).json({ error: 'invName is required' });
-    }
-    // pass through
-    next();
-  },
-
-  // If your code expects named exports, keep this object shape
-  validateInventoryId: (req, res, next) => {
-    const id = req.params.id || req.body.id;
-    if (id && !Number.isInteger(Number(id))) {
-      return res.status(400).json({ error: 'Invalid inventory id' });
-    }
-    next();
-  }
+  inventoryRules,
+  checkInventoryPayload
 };
